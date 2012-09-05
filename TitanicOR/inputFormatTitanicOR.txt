@@ -1,0 +1,22 @@
+================================================================================================
+*	THE UNIVERSITY OF NEWCASTLE -- AUSTRALIA
+*	CENTRE FOR BIOINFORMATICS, BIOMARKER DISCOVERY & INFORMATION-BASED MEDICINE -- CIBM
+*	AUTHOR: RENATO VIMIEIRO
+*	DATE: AUGUST 15, 2011
+================================================================================================
+
+TITANICOR INPUT FILE DESCRIPTION
+
+
+The TitanicOR algorithm accepts files with the following format:
+
+
+<NumberOfAttributes> <NumberOfSamples>
+<nb. att. sample 1> <att. 1> <att. 2> ... <att. k_1>
+<nb. att. sample 2> <att. 1> <att. 2> ... <att. k_2>
+
+		......
+		
+<nb. att. sample N> <att. 1> <att. 2> ... <att. k_n>
+
+where "att. X" is an integer representing the attribute/feature.
