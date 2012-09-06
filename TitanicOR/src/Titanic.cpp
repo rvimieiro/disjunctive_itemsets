@@ -32,8 +32,6 @@ KeySets& Titanic::titanic(int minsup, int maxitem) {
 
 int main(int argc, char ** argv){
 	//minsup = atoi(argv[2]);
-	string s(argv[1]);
-	Titanic t(s);
 	int max_item = 1000000;
 	if(argc>=4){
 		minsup = atoi(argv[2]);
@@ -43,6 +41,8 @@ int main(int argc, char ** argv){
 		cerr << "Usage: " << argv[0] << " <filename> <minsup(int)> <maxitem(int)> <maxsup(int)>" << endl;
 		exit(0);
 	}
+	string s(argv[1]);
+	Titanic t(s);
 	cout << t.titanic(minsup,max_item);
 	return 0;
 }

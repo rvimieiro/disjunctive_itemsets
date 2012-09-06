@@ -8,8 +8,9 @@
 #ifndef DATABASE_H_
 #define DATABASE_H_
 
-#include "boost/dynamic_bitset.hpp"
+#include <boost/dynamic_bitset.hpp>
 #include <string>
+#include <iostream>
 //#include "KeySets.hpp"
 
 using namespace std;
