@@ -7,6 +7,8 @@
 
 #include "Generator.hpp"
 
+bool Generator::show_trans = false;
+
 Generator::Generator(int item, int sI, int sT) {
 	index_to_insert = 0;
 	transactions.resize(sT);
@@ -31,13 +33,22 @@ Generator::Generator() {
 }
 
 Generator::~Generator() {
-	// TODO Auto-generated destructor stub
+	transactions.clear();
+	items.clear();
 }
 
 ostream& operator<< (ostream& out, Generator& gen){
 	out << "{ ";
 	for (set<int>::iterator it=gen.items.begin() ; it != gen.items.end(); it++ ) out << *it << " ";
-	out << "} " << gen.weight << " (" << gen.parent_weight << ")"<< endl;
+	out << "}\t";
+	if(Generator::show_trans){
+		out << gen.weight << "\t[ ";
+		for(size_t i = gen.transactions.find_first(); i != gen.transactions.npos; i = gen.transactions.find_next(i))
+			out << i << " ";
+		out << "]" << endl;
+	}
+	else
+		out << gen.weight << " (" << gen.parent_weight << ")"<< endl;
 
 	return out;
 }

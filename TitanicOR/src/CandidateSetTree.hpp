@@ -24,7 +24,7 @@ private:
 public:
 	friend ostream& operator<< (ostream& out, CandidateNode& cn);
 	CandidateNode(){ level = -1; gen = 0x00000000; }
-	virtual ~CandidateNode(){gen = 0x00000000;}
+	~CandidateNode(){delete gen; gen = 0x0000000;}
 	void insert(Generator *, set<int>::iterator, int level);
 };
 

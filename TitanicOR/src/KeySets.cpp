@@ -8,14 +8,17 @@
 #include "KeySets.hpp"
 #include <algorithm>
 #include <iostream>
-//extern "C++" int minsup;
+#include <cstdio>
 
 using namespace std;
+
+double get_memory_usage();
 
 KeySets::KeySets() {
 	size = 0;
 	this->minsup = 0;
 	this->numberCandidates = 0;
+	this->show = true;
 }
 
 KeySets::~KeySets() {
@@ -26,34 +29,51 @@ bool KeySets::generate_candidates_one(Database* db){
 	CandidateSetTree * cst = new CandidateSetTree();
 
 	register int i;
-	const register int size = db->numAtt;
+	this->numAtt = db->numAtt;
+	this->numObj = db->numObj;
+
+#if DEBUG_MODE
+	cout << endl << "Memory usage before first candidates (KB): " << get_memory_usage() << endl;
+#endif
+
+	const register int size = this->numAtt;
+
 	for(i = 0; i < size; i++){
 		int sup = db->items[i].count();
 		this->numberCandidates++;
 		if(sup >= minsup && sup <= maxsup){
-			Generator * gen = new Generator(i,db->numAtt,db->numObj);
+			Generator * gen = new Generator(i,this->numAtt,this->numObj);
 			gen->set_weight(sup);
 			gen->set_transactions(db->items[i]);
 			cst->insert(gen);
 			this->size++;
 		}
 	}
-//	cin >> i;
-	keysets[1] = cst;
-//	cout << *(keysets[1]) << "Hi " << endl <<  *cst;
+//	keysets[1] = cst;
+	old = cst;
+
+#if DEBUG_MODE
+	cout << endl << "Memory usage after first candidates (KB): " << get_memory_usage() << endl;
+#endif
+
+	if(show)
+		cout << *cst;
+
 	return !cst->empty();
 }
 
-bool KeySets::generate_candidates_two(Database* db){
-	CandidateSetTree * cst = keysets[1];
+bool KeySets::generate_candidates_two(){
+	CandidateSetTree * cst = old;
 	CandidateSetTree * newcst = new CandidateSetTree();
-	keysets[2] = newcst;
+//	keysets[2] = newcst;
 	map<int, CandidateNode>::iterator it = cst->root.children.begin();
 	map<int, CandidateNode>::iterator end = cst->root.children.end();
+
+
 	for(; it != end; it++ ){
 		map<int, CandidateNode>::iterator tmp = end;
 		for(--tmp; tmp != it; tmp--){
-			Generator * gen = new Generator(it->first,db->numAtt,db->numObj);
+			Generator * gen = new Generator(it->first,this->numAtt,this->numObj);
 			gen->insert(tmp->first);
 			gen->union_trans(it->second.gen->transactions,tmp->second.gen->transactions);
 			this->numberCandidates++;
@@ -66,15 +86,31 @@ bool KeySets::generate_candidates_two(Database* db){
 			}
 		}
 	}
+
+	if(show)
+		cout << *newcst;
+
+#if DEBUG_MODE
+	cout << endl << "Memory usage before second candidates (KB): " << get_memory_usage() << endl;
+#endif
+
+	old = newcst;
+	delete cst;
+
+#if DEBUG_MODE
+	cout << endl << "Memory usage after second candidates (KB): " << get_memory_usage() << endl;
+#endif
+
 	return !newcst->empty();
 }
 
-bool KeySets::generate_candidates(int length,Database * db){
+bool KeySets::generate_candidates(int length){
 	if(length < 3) return true;
-//	vector < Generator * > * candys = new vector < Generator * >();
-	CandidateSetTree * cst = keysets[length-1];
+	CandidateSetTree * cst = old;
 	CandidateSetTree * newcst = new CandidateSetTree();
-	keysets[length] = newcst;
+//	keysets[length] = newcst;
+
+
 	vector < CandidateNode * > stack;
 	stack.push_back(&(cst->root));
 	while(!stack.empty()){
@@ -91,32 +127,37 @@ bool KeySets::generate_candidates(int length,Database * db){
 				for(; it != end; it++ ){
 					map<int, CandidateNode>::iterator tmp = end;
 					for(--tmp; tmp != it; tmp--){
-
-//						cerr << *(it->second.gen);
-//						cerr << *(tmp->second.gen);
-
-						Generator * gen = new Generator(db->numAtt,db->numObj);
+						Generator * gen = new Generator(this->numAtt,this->numObj);
 						this->numberCandidates++;
 						vector<int> begin(length);
 						set_union(it->second.gen->begin(),it->second.gen->end(),
 								tmp->second.gen->begin(),tmp->second.gen->end(),begin.begin());
 						gen->items.insert(begin.begin(),begin.end());
 						gen->union_trans(it->second.gen->transactions,tmp->second.gen->transactions);
-//						int pw1 = it->second.gen->weight;
-//						int pw2 = tmp->second.gen->weight;
-//						gen->set_parent_weight((pw1>pw2?pw1:pw2));
 						if(!should_be_pruned(gen,cst,length)) {
-//							candys->push_back(gen);
 							newcst->insert(gen);
 							this->size++;
-//							cerr << "Included ==>> " << *gen;
 						}
-//						else cerr << "Pruned ==>> " << *gen;
 					}
 				}
 			}
 		}
 	}
+
+#if DEBUG_MODE
+	cout << endl << "Memory usage before " << length << " candidates (KB): " << get_memory_usage() << endl;
+#endif
+
+	if(show)
+		cout << *newcst;
+
+	old = newcst;
+	delete cst;
+
+#if DEBUG_MODE
+	cout << endl << "Memory usage before " << length << " candidates (KB): " << get_memory_usage() << endl;
+#endif
+
 	return !newcst->empty();
 }
 
@@ -125,17 +166,11 @@ bool KeySets:: should_be_pruned(Generator * gen, CandidateSetTree * cst, int len
 	int * key = new int[length -1];
 	for(set<int>::const_iterator it = gen->items.begin(); it != gen->items.end(); it++){
 		remove_copy(gen->begin(),gen->end(),key,*it);
-
-//		cerr << "Key [ ";
-//		for(int i = 0; i < length-1; i++) cerr << key[i] << " ";
-//		cerr << "]" << endl;
-
 		Generator * tmp = cst->find(key,length-1);
 		if(tmp != NULL){
 			gen->set_parent_weight(max(gen->parent_weight,tmp->weight));
 		} else{
 			delete[] key;
-//			cerr << " Didn't find!" << endl;
 			return true;
 		}
 	}
@@ -144,24 +179,9 @@ bool KeySets:: should_be_pruned(Generator * gen, CandidateSetTree * cst, int len
 }
 
 ostream& operator<< (ostream& out, KeySets& ks){
-	for(map<int, CandidateSetTree * >::iterator it = ks.keysets.begin(); it != ks.keysets.end(); it++)
-		out << *(it->second);
+//	for(map<int, CandidateSetTree * >::iterator it = ks.keysets.begin(); it != ks.keysets.end(); it++)
+//		out << *(it->second);
 	out << "# of OR-CLAUSES = " << ks.size << endl;
 	out << "# of candidates = " << ks.numberCandidates << endl;
 	return out;
 }
-
-//int main(int argc, char ** argv){
-//	string s(argv[1]);
-//	Database db(s);
-//	db.load();
-//	KeySets ks;
-//	ks.generate_candidates_one(&db);
-////	cout << ks;
-//	ks.generate_candidates_two(&db);
-//	int i = 3;
-//	while(ks.generate_candidates(i++,&db));
-////		cerr << "OLLLLLLLLLLAAAAAAAAAAAAAAA >>>>>>>>>>>> " << i++ << endl;
-//
-//	cout << ks;
-//}

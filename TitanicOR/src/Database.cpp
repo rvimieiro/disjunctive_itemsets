@@ -18,13 +18,12 @@ Database::Database(string filename) {
 }
 
 Database::~Database() {
-//	for(int i = 0; i < numAtt; i++)
-//		delete items[i];
+	items.clear();
 }
 
 void Database::load() {
 	ifstream ifs(filename.c_str());
-//	ifs.open;
+
 	if(ifs.fail()) { cerr << "Error while opening " << filename << endl; exit(-1); }
 
 	ifs >> numAtt;

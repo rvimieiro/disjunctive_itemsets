@@ -18,7 +18,7 @@ private:
 public:
 	Titanic(string filename);
 	virtual ~Titanic();
-	KeySets& titanic(int minsup, int maxitem);
+	KeySets& titanic(int minsup, int maxitem, bool show);
 };
 
 

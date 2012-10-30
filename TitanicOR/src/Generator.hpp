@@ -9,7 +9,7 @@
 #define GENERATOR_H_
 
 #include <set>
-#include "boost/dynamic_bitset.hpp"
+#include <boost/dynamic_bitset.hpp>
 #include <iostream>
 
 using namespace std;
@@ -25,6 +25,7 @@ private:
 	int parent_weight;
 	static const int size_transactions = 5;
 	static const int size_items = 5;
+	static bool show_trans;
 public:
 	Generator(int, int, int);
 	Generator(int, int);
@@ -42,6 +43,7 @@ public:
 	inline set<int>::iterator end() { return items.end(); }
 	inline void set_transactions(dynamic_bitset<>& trans) { this->transactions = trans; }
 	void union_trans(dynamic_bitset<> a, dynamic_bitset<> b);
+	static void set_show_trans(bool st) {Generator::show_trans = st;}
 };
 
 #endif /* GENERATOR_H_ */
