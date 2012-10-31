@@ -80,7 +80,8 @@ bool KeySets::generate_candidates_two(){
 			int pw1 = it->second.gen->weight;
 			int pw2 = tmp->second.gen->weight;
 			gen->set_parent_weight((pw1>pw2?pw1:pw2));
-			if(gen->get_weight() <= maxsup && gen->get_weight() != gen->get_parent_weight()) {
+			int weight=gen->get_weight();
+			if( weight > minsup && weight <= maxsup && weight != gen->get_parent_weight()) {
 				newcst->insert(gen);
 				this->size++;
 			}
