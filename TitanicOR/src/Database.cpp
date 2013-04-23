@@ -36,6 +36,7 @@ void Database::load() {
 		ifs >> size;
 		for(int j = 0; j < size; j++){
 			ifs >> att;
+			assert(att < numAtt);
 			if(items[att].size() == 0) items[att].resize(numObj);
 			items[att].set(i,1);
 		}
