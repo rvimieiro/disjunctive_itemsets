@@ -10,6 +10,7 @@
 #include <cstdio>
 #include "Debug.h"
 #include <string.h>
+#include "SignalHandler.h"
 
 using namespace std;
 int minsup = 0;
@@ -65,6 +66,10 @@ int main(int argc, char ** argv){
 		show_usage();
 		exit(0);
 	}
+
+	//Memory handlers to avoid core dumping
+	addMemorySignalHandlers();
+
 	string s(argv[1]);
 	Titanic t(s);
 	int max_item = 1000000;
